@@ -1,0 +1,26 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  name: trust-refine
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trust-refine
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: trust-refine
+    spec:
+      containers:
+      - imagePullPolicy: Always
+        image: olix0r/trust-refine:v0
+        name: trust-refine
+        args:
+          - web.ver-linkerd
+          - web-svc.emojivoto
+        env:
+          - name: RUST_LOG
+            value: info,trust_dns_proto=warn

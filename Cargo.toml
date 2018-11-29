@@ -1,0 +1,12 @@
+[package]
+name = "trust-refine"
+version = "0.1.0"
+authors = ["Oliver Gould <ver@buoyant.io>"]
+
+[dependencies]
+env_logger = { version = "0.5", default-features = false }
+futures = "0.1"
+log = "0.4.1"
+tokio = "0.1.7"
+tokio-timer = "0.2.6"   # for tokio_timer::clock
+trust-dns-resolver = { git = "https://github.com/bluejekyll/trust-dns", rev = "c017c114", default-features = false }
