@@ -67,27 +67,23 @@ impl Future for Refine {
                 State::Pending(ref mut fut) => match fut.poll() {
                     Ok(Async::NotReady) => return Ok(Async::NotReady),
                     Ok(Async::Ready(lookup)) => {
-                        println!("{}: {}", self.name, lookup.query().name());
-                        info!(
-                            "{} valid for {}s",
-                            self.name,
-                            (lookup.valid_until() - clock::now()).as_secs(),
-                        );
+                        let ttl = (lookup.valid_until() - clock::now()).as_secs();
+                        println!("{}: {} [{}s]", self.name, lookup.query().name(), ttl);
                         State::ValidUntil(Delay::new(lookup.valid_until()))
                     }
                     Err(e) => {
-                        error!("{}: {:?}", self.name, e);
+                        let e = e.into_inner().expect("timer must succeed");
 
-                        let valid_until = e
-                            .into_inner()
-                            .and_then(|e| match e.kind() {
-                                dns::error::ResolveErrorKind::NoRecordsFound {
-                                    valid_until,
-                                    ..
-                                } => *valid_until,
-                                _ => None,
-                            })
-                            .unwrap_or_else(|| clock::now() + ERROR_TTL);
+                        let valid_until = match e.kind() {
+                            dns::error::ResolveErrorKind::NoRecordsFound {
+                                valid_until,
+                                ..
+                            } => *valid_until,
+                            _ => None,
+                        }.unwrap_or_else(|| clock::now() + ERROR_TTL);
+
+                        let ttl = (valid_until - clock::now()).as_secs();
+                        eprintln!("error: {}: {} [{}s]", self.name, e, ttl);
 
                         State::ValidUntil(Delay::new(valid_until))
                     }
